@@ -23,7 +23,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserInfo(userId));
     }
     @GetMapping("/user-no-relations")
-    public ResponseEntity<List<UserInfoDto>> getUsersWithoutRelations(@RequestHeader("userId") String userId) {
+    public ResponseEntity<List<UserInfoDto>> getUsersWithoutRelations(@RequestHeader("X-User-Id") String userId) {
        var res =  userService.getUsersNoRelationWithCurrentUser(Integer.parseInt(userId));
        return ResponseEntity.ok(res);
     }

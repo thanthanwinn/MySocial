@@ -36,6 +36,9 @@ public class Relations {
     @Column(nullable = false)
     private RelationType type;
 
+    @Column(nullable = false)
+    private RelationStatus status;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

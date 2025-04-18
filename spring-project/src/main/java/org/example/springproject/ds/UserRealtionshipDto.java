@@ -12,16 +12,16 @@ public class UserRealtionshipDto {
     private int id;
     private String username;
     private String userDisplayName;
-    private String relationType;
-    private String userImage;
+    private String relationStatus;
+    private String img;
     private LocalDateTime createdAt;
 
-    public UserRealtionshipDto(int id, String username, String userDisplayName, String relationType, String userImage, LocalDateTime createdAt) {
+    public UserRealtionshipDto(int id, String username, String userDisplayName, String relationStatus, String userImage, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
         this.userDisplayName = userDisplayName;
-        this.relationType = relationType;
-        this.userImage = userImage;
+        this.relationStatus = relationStatus;
+        this.img = userImage;
         this.createdAt = createdAt;
     }
 }

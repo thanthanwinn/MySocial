@@ -36,7 +36,7 @@ public class MessageService {
         if (reverseRelation != null && reverseRelation.getType() == RelationType.BLOCKED) {
             throw new SecurityException("You are blocked by " + receiver.getUsername());
         }
-        if (relation == null || (relation.getType() != RelationType.FOLLOW && relation.getType() != RelationType.ACCEPTED)) {
+        if (relation == null || (relation.getType() != RelationType.FOLLOW && relation.getType() != RelationType.FRIEND)) {
             throw new SecurityException("You must be following or friends with " + receiver.getUsername() + " to send a message");
         }
 

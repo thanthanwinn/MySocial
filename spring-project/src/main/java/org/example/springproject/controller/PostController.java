@@ -38,9 +38,9 @@ public class PostController {
         PostDto post = postService.getPostById(postId, Integer.parseInt(userId));
         return ResponseEntity.ok(post);
     }
-    @GetMapping("/user-posts")
-    public ResponseEntity<List<PostDto>> getPostsByUserId(@RequestHeader("X-User-Id") String userId) {
-        List<PostDto> posts = postService.getPostsByUserId(Integer.parseInt(userId));
+    @GetMapping("/user-posts/{userid}/{viewerid}")
+    public ResponseEntity<List<PostDto>> getPostsByUserId(@PathVariable("userid") int userId, @PathVariable("viewerid") int viewerId) {
+        List<PostDto> posts = postService.getPostsByUserId(userId,viewerId);
         return ResponseEntity.ok(posts);
     }
 

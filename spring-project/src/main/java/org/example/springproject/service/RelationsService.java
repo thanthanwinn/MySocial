@@ -4,24 +4,25 @@ import lombok.RequiredArgsConstructor;
 import org.example.springproject.dao.RelationsDao;
 import org.example.springproject.dao.UserDao;
 import org.example.springproject.ds.RelationsDto;
-import org.example.springproject.ds.UserInfoDto;
 import org.example.springproject.ds.UserRealtionshipDto;
 import org.example.springproject.ds.UserRelationDto;
-import org.example.springproject.entity.NotificationType;
-import org.example.springproject.entity.RelationType;
+import org.example.springproject.entity.RelationStatus;
 import org.example.springproject.entity.Relations;
+import org.example.springproject.entity.RelationType;
 import org.example.springproject.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.management.relation.RelationTypeSupport;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.example.springproject.entity.RelationType.*;
 @Service
 @RestController
 @RequiredArgsConstructor
@@ -37,12 +38,12 @@ public class RelationsService {
     }
 
     public Relations getExistingRelation(int userId, int friendId) {
-        var relation = relationsDao.findByFollowerAndFollowedUser(userId, friendId).orElse(null);
+        Relations relation = relationsDao.findByFollowerAndFollowedUser(userId, friendId).orElse(null);
         if (relation == null) {
-            System.out.println("user not found using null");
+            log.info("No existing relation found for user {} and friend {}", userId, friendId);
             return null;
         }
-        System.out.println("relation is successfully");
+        log.info("Existing relation found for user {} and friend {}", userId, friendId);
         return relation;
     }
 
@@ -63,7 +64,7 @@ public class RelationsService {
     }
 
     private void removeRelation(User follower, User followee) {
-        var relation = getExistingRelation(follower.getId(), followee.getId());
+        Relations relation = getExistingRelation(follower.getId(), followee.getId());
         if (relation != null) {
             log.info("Removing relation: id={}, followerId={}, followedUserId={}",
                     relation.getId(), follower.getId(), followee.getId());
@@ -85,44 +86,72 @@ public class RelationsService {
         dto.setSenderName(relation.getFollower().getUsername());
         dto.setRecipientId(relation.getFollowedUser().getId());
         dto.setRecipientName(relation.getFollowedUser().getUsername());
-        dto.setStatus(relation.getType().toString());
+        dto.setStatus(relation.getStatus().toString()); // Now a String: "PENDING", "ACCEPT", or "ACTIVE"
         dto.setCreatedAt(relation.getCreatedAt());
         dto.setUpdatedAt(relation.getUpdatedAt());
         return dto;
     }
 
+    /**
+     * Processes relation requests based solely on the desired relation type.
+     * The service sets the appropriate status internally:
+     * - FRIEND: On creation, status="PENDING"; for an acceptance, status="ACCEPT".
+     * - FOLLOW: Sets status="ACTIVE".
+     * - BLOCK: No status (set to null).
+     */
     @Transactional
     public RelationsDto makeRequest(int userId, int friendId, RelationType relationType) {
         validateUsersNotSame(userId, friendId);
         User follower = getUserById(userId);
         User followed = getUserById(friendId);
 
+        // Retrieve existing relation, if any
         Relations currentRelation = getExistingRelation(userId, friendId);
         if (currentRelation != null) {
             RelationType currentType = currentRelation.getType();
-            if (currentType == BLOCKED) {
-                throw new IllegalStateException("Cannot proceed: " + (userId + " is blocked by " + friendId));
+            // Disallow processing if you have been blocked
+            if (currentType == RelationType.BLOCKED) {
+                throw new IllegalStateException("Cannot proceed: " + userId + " is blocked by " + friendId);
             }
-            if (relationType == PENDING && currentType == PENDING) {
-                throw new IllegalStateException("Friend request already pending between " + userId + " and " + friendId);
+            // If the request is for a friend relation...
+            if (relationType == RelationType.FRIEND) {
+                // If already pending, do not allow duplicate pending friend request.
+                if ("PENDING".equals(currentRelation.getStatus()) && currentType == RelationType.FRIEND) {
+                    throw new IllegalStateException("Friend request already pending between " + userId + " and " + friendId);
+                }
+                // For acceptance: if the relation is pending but the direction is reversed,
+                // then update the status to "ACCEPT"
+                if ("PENDING".equals(currentRelation.getStatus())) {
+                    currentRelation.setStatus(RelationStatus.ACCEPTED);
+                    currentRelation.setUpdatedAt(LocalDateTime.now());
+                    Relations savedRelation = relationsDao.save(currentRelation);
+                    updateUserRelations(follower, followed, savedRelation);
+                    return convertToRelationDto(savedRelation);
+                }
+                // If already friends, disallow sending a friend request again.
+                throw new IllegalStateException("Already friends or friend request processed between " + userId + " and " + friendId);
+            } else if (relationType == RelationType.FOLLOW) {
+                // Do not allow follow action if already following or if already friends.
+                if ("ACTIVE".equals(currentRelation.getStatus()) && currentType == RelationType.FOLLOW) {
+                    throw new IllegalStateException("Already following this user");
+                }
+                // Update the existing relation to follow
+                currentRelation.setType(RelationType.FOLLOW);
+                currentRelation.setStatus(RelationStatus.ACTIVE);
+                currentRelation.setUpdatedAt(LocalDateTime.now());
+                Relations savedRelation = relationsDao.save(currentRelation);
+                updateUserRelations(follower, followed, savedRelation);
+                return convertToRelationDto(savedRelation);
+            } else if (relationType == RelationType.BLOCKED) {
+                // When blocking, remove any existing relation first
+                removeRelation(follower, followed);
+                // Then create a new block relationship below.
             }
-            if (relationType == ACCEPTED && currentType != PENDING) {
-                throw new IllegalStateException("Cannot accept: no pending request from " + userId + " to " + friendId);
-            }
-            if (relationType == PENDING && (currentType == FOLLOW || currentType == ACCEPTED)) {
-                throw new IllegalStateException("Cannot send friend request: already following or friends with " + friendId);
-            }
-            // Update existing relation
-            currentRelation.setType(relationType);
-            currentRelation.setUpdatedAt(LocalDateTime.now());
-            Relations savedRelation = relationsDao.save(currentRelation);
-            updateUserRelations(follower, followed, savedRelation);
-            return convertToRelationDto(savedRelation);
         }
 
-        // Check if the reverse relation is BLOCKED
+        // Check reverse relation: Do not allow request if the other party has blocked the user.
         Relations reverseRelation = getExistingRelation(friendId, userId);
-        if (reverseRelation != null && reverseRelation.getType() == BLOCKED) {
+        if (reverseRelation != null && reverseRelation.getType() == RelationType.BLOCKED) {
             throw new IllegalStateException("Cannot proceed: " + friendId + " has blocked " + userId);
         }
 
@@ -131,6 +160,13 @@ public class RelationsService {
         newRelation.setFollower(follower);
         newRelation.setFollowedUser(followed);
         newRelation.setType(relationType);
+        if (relationType == RelationType.FRIEND) {
+            newRelation.setStatus(RelationStatus.PENDING);
+        } else if (relationType == RelationType.FOLLOW) {
+            newRelation.setStatus(RelationStatus.ACTIVE);
+        } else if (relationType == RelationType.BLOCKED) {
+            newRelation.setStatus(null);
+        }
         newRelation.setCreatedAt(LocalDateTime.now());
         newRelation.setUpdatedAt(LocalDateTime.now());
 
@@ -139,55 +175,71 @@ public class RelationsService {
         return convertToRelationDto(savedRelation);
     }
 
+    // Sends a friend request. A new FRIEND relation is created with status "PENDING".
     @Transactional
     public RelationsDto sendFriendRequest(int userId, int friendId) {
         log.info("User {} sending friend request to {}", userId, friendId);
-
-        return makeRequest(userId, friendId, PENDING);
+        return makeRequest(userId, friendId, RelationType.FRIEND);
     }
+
+    // Accepts a friend request. It retrieves a pending friend request and changes its status to "ACCEPT".
 
     @Transactional
     public void acceptFriendRequest(int userId, int friendId) {
         log.info("User {} accepting friend request from {}", userId, friendId);
-        Relations currentRelation = getExistingRelation(friendId, userId); // Note: friendId sent to userId
-        if (currentRelation == null || currentRelation.getType() != PENDING) {
-            throw new IllegalStateException("No pending friend request from " + friendId + " to " + userId);
-        }
-        RelationsDto result = makeRequest(friendId, userId, ACCEPTED);
 
+        // Get the pending request where friendId is the sender (follower)
+        // and userId is the recipient (followedUser)
+        Relations currentRelation = relationsDao.findByFollowerIdAndFollowedUserIdAndStatus(
+                        friendId, userId, RelationStatus.PENDING)
+                .orElseThrow(() -> new IllegalStateException("No pending friend request from " + friendId + " to " + userId));
+
+        if (currentRelation.getType() != RelationType.FRIEND) {
+            throw new IllegalStateException("Not a friend request");
+        }
+
+        currentRelation.setStatus(RelationStatus.ACCEPTED);
+        currentRelation.setUpdatedAt(LocalDateTime.now());
+        Relations savedRelation = relationsDao.save(currentRelation);
+        updateUserRelations(getUserById(friendId), getUserById(userId), savedRelation);
+
+        log.info("Friend request accepted successfully");
     }
 
+    // Cancels an outgoing friend request.
     @Transactional
     public void cancelFriendRequest(int userId, int friendId) {
         log.info("User {} canceling friend request to {}", userId, friendId);
         Relations relation = getExistingRelation(userId, friendId);
-        if (relation == null || relation.getType() != PENDING) {
+        if (relation == null || relation.getType() != RelationType.FRIEND ||
+                !"PENDING".equals(relation.getStatus())) {
             throw new IllegalStateException("No pending friend request to cancel from " + userId + " to " + friendId);
         }
         removeRelation(getUserById(userId), getUserById(friendId));
         log.info("Friend request canceled successfully");
     }
 
+    // Blocks a user. It first removes any existing relation and then creates a new BLOCK relation.
     @Transactional
     public String block(int userId, int friendId) {
         log.info("User {} blocking user {}", userId, friendId);
         validateUsersNotSame(userId, friendId);
 
-        // Remove any existing relation
         removeRelation(getUserById(userId), getUserById(friendId));
 
-        // Create or update to BLOCKED
-        RelationsDto result = makeRequest(userId, friendId, BLOCKED);
+        // Create new BLOCK relation – status is left as null.
+        makeRequest(userId, friendId, RelationType.BLOCKED);
         return "Blocked successfully";
     }
 
+    // Follows a user. Creates a FOLLOW relation with status "ACTIVE".
     @Transactional
     public String follow(int followerId, int followeeId) {
-        System.out.println("followerId: " + followerId + " followeeId: " + followeeId);
+        log.info("User {} attempting to follow user {}", followerId, followeeId);
         if (isFollowing(followerId, followeeId)) {
             return "Already following this user";
         }
-        RelationsDto result = makeRequest(followerId, followeeId, FOLLOW);
+        makeRequest(followerId, followeeId, RelationType.FOLLOW);
         return "Followed successfully";
     }
 
@@ -196,7 +248,7 @@ public class RelationsService {
         removeRelation(getUserById(userId), getUserById(friendId));
     }
 
-
+    // Unfollows a user.
     @Transactional
     public String unfollow(int userId, int friendId) {
         log.info("Attempting to unfollow: userId={}, friendId={}", userId, friendId);
@@ -205,8 +257,7 @@ public class RelationsService {
             log.warn("No relation found to unfollow between userId={} and friendId={}", userId, friendId);
             return "Not following this user";
         }
-        if (currentRelation.getType() != BLOCKED) {
-            log.info("Removing relation: id={}", currentRelation.getId());
+        if (currentRelation.getType() != RelationType.BLOCKED) {
             removeRelation(getUserById(userId), getUserById(friendId));
             return "Unfollowed successfully";
         }
@@ -214,8 +265,9 @@ public class RelationsService {
         return "Cannot unfollow a blocked user";
     }
 
+    // Retrieve followers (for FOLLOW type relations)
     @Transactional(readOnly = true)
-    public List<UserRealtionshipDto  > getFollowers(int userId) {
+    public List<UserRealtionshipDto> getFollowers(int userId) {
         log.info("Retrieving followers for userId={}", userId);
         User user = getUserById(userId);
         List<Relations> followers = relationsDao.findByFollowedUserAndType(user, RelationType.FOLLOW);
@@ -224,56 +276,70 @@ public class RelationsService {
                         relation.getFollowedUser().getId(),
                         relation.getFollowedUser().getUsername(),
                         relation.getFollowedUser().getProfile().getDisplayName(),
-                        relation.getType().name(), // convert enum to String
-                        relation.getFollowedUser().getProfile().getImg(), // assuming img is here
+                        relation.getStatus().toString(), // now shows "ACTIVE"
+                        relation.getFollowedUser().getProfile().getImg(),
                         relation.getCreatedAt()))
                 .collect(Collectors.toList());
     }
+
+    // Retrieve friends (accepted friend relations)
     @Transactional
     public List<UserRealtionshipDto> getFriends(int userId) {
-        User user = getUserById(userId);
-        return user.getFollowing().stream()
-                .filter(relation -> relation.getType() == RelationType.ACCEPTED)
+
+        List<Relations> relations = relationsDao.findRelationsByUserIdAndType(userId, RelationStatus.ACCEPTED);
+        List<User> friends = new ArrayList<>();
+        for (Relations r : relations) {
+            if (r.getFollower().getId() == userId) {
+                friends.add(r.getFollowedUser());
+            } else {
+                friends.add(r.getFollower());
+            }
+        }
+
+        return friends.stream()
                 .map(relation -> new UserRealtionshipDto(
-                        relation.getFollowedUser().getId(),
-                        relation.getFollowedUser().getUsername(),
-                        relation.getFollowedUser().getProfile().getDisplayName(),
-                        relation.getType().name(), // convert enum to String
-                        relation.getFollowedUser().getProfile().getImg(), // assuming img is here
-                        relation.getCreatedAt()))
+                        relation.getId(),
+                        relation.getUsername(),
+                        relation.getProfile().getDisplayName(),
+                        relation.toString(),
+                        relation.getProfile().getImg(),
+                        LocalDateTime.now()))
                 .collect(Collectors.toList());
     }
+
+    // Retrieve friend requests that are still pending.
     @Transactional
     public List<UserRealtionshipDto> getFriendRequests(int userId) {
-        User user = getUserById(userId);
-        return user.getFollowing().stream()
-                .filter(relation -> relation.getType() == RelationType.PENDING)
+        // Find requests where current user is the recipient (followedUser)
+        // and status is PENDING
+        List<Relations> requests = relationsDao.findByFollowedUserIdAndStatusAndType(
+                userId, RelationStatus.PENDING, RelationType.FRIEND);
+
+        return requests.stream()
                 .map(relation -> new UserRealtionshipDto(
-                        relation.getFollowedUser().getId(),
-                        relation.getFollowedUser().getUsername(),
-                        relation.getFollowedUser().getProfile().getDisplayName(),
-                        relation.getType().name(), // convert enum to String
-                        relation.getFollowedUser().getProfile().getImg(), // assuming img is here
+                        relation.getFollower().getId(),
+                        relation.getFollower().getUsername(),
+                        relation.getFollower().getProfile().getDisplayName(),
+                        relation.getStatus().toString(),
+                        relation.getFollower().getProfile().getImg(),
                         relation.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
-
-
-    // Method to get following
+    // Retrieve following list for follow relations.
     @Transactional(readOnly = true)
     public List<UserRelationDto> getFollowing(int userId) {
         log.info("Retrieving following list for userId={}", userId);
         User user = getUserById(userId);
         return user.getFollowing().stream()
-                .filter(relation -> relation.getType() == RelationType.FOLLOW)
+                .filter(relation -> relation.getType() == RelationType.FOLLOW &&
+                        "ACTIVE".equals(relation.getStatus()))
                 .map(relation -> new UserRelationDto(
                         relation.getFollowedUser().getId(),
                         relation.getFollowedUser().getUsername(),
                         relation.getType().toString(),
+                        relation.getStatus().toString(),
                         relation.getCreatedAt()))
                 .collect(Collectors.toList());
     }
-
-
 }

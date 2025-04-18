@@ -58,11 +58,11 @@ public class PostService {
         throw new SecurityException("You do not have permission to view this post");
     }
     @Transactional(readOnly = true)
-    public List<PostDto> getPostsByUserId(int userId){
+    public List<PostDto> getPostsByUserId(int userId,int viewerId){
          return postDao.findPostsByUserId(userId)
                  .stream()
-                 .map(post -> convertToDto(post,userId))
-                 .collect(Collectors.toList());
+                 .filter(post -> canViewPost(post, viewerId))
+                 .map(p -> convertToDto(p,viewerId))                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -236,7 +236,7 @@ public class PostService {
             case PRIVATE -> viewer.getId() == author.getId(); // Only author can see
             case FRIENDS -> {
                 Relations relation = relationsService.getExistingRelation(viewer.getId(), author.getId());
-                yield relation != null && relation.getType() == RelationType.ACCEPTED  || viewer.getId() == author.getId();
+                yield relation != null && relation.getType() == RelationType.FRIEND  || viewer.getId() == author.getId();
             }
         };
     }

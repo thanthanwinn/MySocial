@@ -5,10 +5,7 @@ import org.example.springproject.dao.RelationsDao;
 import org.example.springproject.dao.UserDao;
 import org.example.springproject.ds.UpdateUserInfoDto;
 import org.example.springproject.ds.UserInfoDto;
-import org.example.springproject.entity.Profile;
-import org.example.springproject.entity.RelationType;
-import org.example.springproject.entity.Relations;
-import org.example.springproject.entity.User;
+import org.example.springproject.entity.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -93,7 +90,7 @@ public class UserService {
     }
 
     public int countUserFollowers(int userId) {
-        return userDao.countFollowersById(userId, RelationType.FOLLOW, RelationType.ACCEPTED);
+        return userDao.countFollowersById(userId, RelationType.FOLLOW,RelationType.FOLLOW);
     }
     public  int countUserFollowing(int userId) {
         return userDao.countFollowingByUserId(userId, RelationType.FOLLOW);

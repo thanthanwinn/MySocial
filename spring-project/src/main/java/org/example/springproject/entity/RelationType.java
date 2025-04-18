@@ -4,8 +4,9 @@ import lombok.Setter;
 
 
 public enum RelationType {
-    PENDING,// Friend request sent
-    FOLLOW,// can see that user public posts
-    ACCEPTED,  // Now friends
+    FRIEND,
+    FOLLOW,
     BLOCKED    // User blocked
 }
+
+

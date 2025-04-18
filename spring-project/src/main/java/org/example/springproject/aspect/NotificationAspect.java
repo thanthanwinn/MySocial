@@ -18,7 +18,7 @@ public class NotificationAspect {
         notificationService.createNotification(senderId, receiverId, "FRIEND_REQUEST", "You have a new friend request.");
     }
 
-    @AfterReturning("execution(* com.example.service.FriendshipService.acceptFriendRequest(..)) && args(senderId, receiverId)")
+    @AfterReturning("execution(* org.example.springproject.service.RelationsService.acceptFriendRequest(..)) && args(senderId, receiverId)")
     public void afterAcceptFriendRequest(Long senderId, Long receiverId) {
         notificationService.createNotification(senderId, receiverId, "FRIEND_ACCEPTED", "Your friend request has been accepted.");
     }
