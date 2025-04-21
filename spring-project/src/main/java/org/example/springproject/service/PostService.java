@@ -9,9 +9,7 @@ import org.example.springproject.ds.CreateCommentDto;
 import org.example.springproject.ds.CreatePostDto;
 import org.example.springproject.ds.PostDto;
 import org.example.springproject.entity.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,12 +60,14 @@ public class PostService {
          return postDao.findPostsByUserId(userId)
                  .stream()
                  .filter(post -> canViewPost(post, viewerId))
-                 .map(p -> convertToDto(p,viewerId))                 .collect(Collectors.toList());
+                 .map(p -> convertToDto(p,viewerId))
+                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public Page<PostDto> getVisiblePosts(int viewerId, Pageable pageable) {
-        Page<Post> posts = postDao.findAll(pageable);
+        Pageable pageable1 = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Post> posts = postDao.findAll(pageable1);
         List<PostDto> filteredAndMapped = posts.stream()
                 .filter(post -> canViewPost(post, viewerId))
                 .map(p -> convertToDto(p,viewerId))
@@ -172,7 +172,7 @@ public class PostService {
 //    }
 
     @Transactional
-    public void deletePost(Long postId, int userId) {
+    public void  deletePost(Long postId, int userId) {
         Post post = postDao.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 

@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RestController
 @RequiredArgsConstructor
 public class RelationsService {
     private static final Logger log = LoggerFactory.getLogger(RelationsService.class);
@@ -131,7 +130,7 @@ public class RelationsService {
                 // If already friends, disallow sending a friend request again.
                 throw new IllegalStateException("Already friends or friend request processed between " + userId + " and " + friendId);
             } else if (relationType == RelationType.FOLLOW) {
-                // Do not allow follow action if already following or if already friends.
+                // Do not allow follow action if already following
                 if ("ACTIVE".equals(currentRelation.getStatus()) && currentType == RelationType.FOLLOW) {
                     throw new IllegalStateException("Already following this user");
                 }
