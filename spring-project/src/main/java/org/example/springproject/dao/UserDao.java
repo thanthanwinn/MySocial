@@ -1,5 +1,6 @@
 package org.example.springproject.dao;
 
+import org.example.springproject.entity.RelationStatus;
 import org.example.springproject.entity.RelationType;
 import org.example.springproject.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,12 @@ public interface UserDao extends JpaRepository<User,Integer> {
     int countFollowingByUserId(@Param("userId") int userId, @Param("type") RelationType type);
 
     // Convenience method to use FOLLOW by default
+    @Query("SELECT COUNT(r) FROM Relations r WHERE (r.status = :friend AND (r.followedUser.id = :userId OR r.follower.id = :userId) OR (r.status = :active AND r.follower.id = :userId) OR (r.status = :pending AND r.follower.id = :userId))")
+    int userFollowing(@Param("userId") int userId, @Param("friend") RelationStatus friend, @Param("active")RelationStatus active, @Param("pending")RelationStatus pending); ;
+
+    @Query("SELECT COUNT(r) FROM Relations r WHERE (r.status = :friend AND (r.followedUser.id = :userId OR r.follower.id = :userId) OR (r.status = :active AND r.followedUser.id = :userId) OR (r.status = :pending AND r.followedUser.id = :userId))")
+    int userFollowers(@Param("userId") int userId, @Param("friend") RelationStatus friend, @Param("active")RelationStatus active, @Param("pending")RelationStatus pending); ;
+
 
 
     @Query("SELECT COUNT(f) FROM Relations f WHERE f.followedUser.id = :userId AND f.type IN (:followType, :acceptedType)")

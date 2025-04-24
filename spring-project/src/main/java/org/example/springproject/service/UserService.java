@@ -1,6 +1,7 @@
 package org.example.springproject.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springproject.controller.RelationsController;
 import org.example.springproject.dao.RelationsDao;
 import org.example.springproject.dao.UserDao;
 import org.example.springproject.ds.UpdateUserInfoDto;
@@ -28,6 +29,8 @@ import static org.example.springproject.entity.RelationType.FOLLOW;
 public class UserService {
     private final UserDao userDao;
     private final RelationsDao relationsDao;
+    private final RelationsController relationsController;
+    private final RelationsService relationsService;
 
     public UpdateUserInfoDto updateUserInfo(
             int userId,
@@ -84,21 +87,10 @@ public class UserService {
                 profile != null ? (profile.getImg() != null ? profile.getImg().toString() : null) : null,
                 user.getEmail(),
                 profile != null ? profile.getBio() : null,
-                countUserFollowing(user.getId()),
-                countUserFollowers(user.getId())
+                relationsService.getCountFollowings(user.getId()) | 0,
+                relationsService.getCountFollowers(user.getId() ) | 0
         );
     }
 
-    public int countUserFollowers(int userId) {
-        return userDao.countFollowersById(userId, RelationType.FOLLOW,RelationType.FOLLOW);
-    }
-    public  int countUserFollowing(int userId) {
-        return userDao.countFollowingByUserId(userId, RelationType.FOLLOW);
-    }
 
-
-    public void printFollowers(int userId) {
-        userDao.findById(userId).get().getFollowersList()
-                .forEach(follower -> System.out.println(follower));
-    }
 }

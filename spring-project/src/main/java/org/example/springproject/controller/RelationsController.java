@@ -1,8 +1,7 @@
 package org.example.springproject.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.springproject.ds.UserRealtionshipDto;
-import org.example.springproject.ds.UserRelationDto;
+import org.example.springproject.ds.UserRelationshipDto;
 import org.example.springproject.service.RelationsService;
 import org.example.springproject.ds.RelationsDto;
 import org.springframework.http.ResponseEntity;
@@ -16,26 +15,31 @@ import java.util.List;
 public class RelationsController {
     private final RelationsService relationsService;
     @GetMapping("/friends")
-    public ResponseEntity<List<UserRealtionshipDto>> getFriends(@RequestHeader("X-User-Id")String userId){
-        List<UserRealtionshipDto> friends = relationsService.getFriends(Integer.parseInt(userId));
+    public ResponseEntity<List<UserRelationshipDto>> getFriends(@RequestHeader("X-User-Id")String userId){
+        List<UserRelationshipDto> friends = relationsService.getFriends(Integer.parseInt(userId));
+        return ResponseEntity.ok(friends);
+    }
+    @GetMapping("/friends/{userId}")
+    public ResponseEntity<List<UserRelationshipDto>> getFriends(@PathVariable("userId")int userId){
+        List<UserRelationshipDto> friends = relationsService.getFriends(userId);
         return ResponseEntity.ok(friends);
     }
     @GetMapping("/friends-requests")
-    public ResponseEntity<List<UserRealtionshipDto>> getFriendRequests(@RequestHeader("X-User-Id")String userId){
-        List<UserRealtionshipDto> friends = relationsService.getFriendRequests(Integer.parseInt(userId));
+    public ResponseEntity<List<UserRelationshipDto>> getFriendRequests(@RequestHeader("X-User-Id")String userId){
+        List<UserRelationshipDto> friends = relationsService.getFriendRequests(Integer.parseInt(userId));
         return ResponseEntity.ok(friends);
     }
 
-    @GetMapping("/followers")
-   public  ResponseEntity<List<UserRealtionshipDto>> getFollowers(@RequestHeader("X-User-Id") String userId) {
-        List<UserRealtionshipDto> followers = relationsService.getFollowers(Integer.parseInt(userId));
+    @GetMapping("/followers/{id}")
+   public  ResponseEntity<List<UserRelationshipDto>> getFollowers(@PathVariable("id")int id) {
+        List<UserRelationshipDto> followers = relationsService.getFollowers(id);
         return ResponseEntity.ok(followers);
     }
 
     // New endpoint to see following
-    @GetMapping("/followings")
-    public ResponseEntity<List<UserRelationDto>> getFollowing(@RequestHeader("X-User-Id") String userId) {
-        List<UserRelationDto> following = relationsService.getFollowing(Integer.parseInt(userId));
+    @GetMapping("/followings/{id}")
+    public ResponseEntity<List<UserRelationshipDto>> getFollowing(@PathVariable("id")int id) {
+        List<UserRelationshipDto> following = relationsService.getFollowing(id);
         return ResponseEntity.ok(following);
     }
 
@@ -90,5 +94,13 @@ public class RelationsController {
             @RequestHeader("X-User-Id") String userId,
             @PathVariable int friendId) {
         return ResponseEntity.ok(relationsService.unfollow(Integer.parseInt(userId), friendId));
+    }
+    @GetMapping("/count-followers/{id}")
+    public int countFollowers(@PathVariable("id")int id){
+        return relationsService.getCountFollowers( id);
+    }
+    @GetMapping("/count-followings/{id}")
+    public int countFollowings(@PathVariable("id")int id){
+        return relationsService.getCountFollowings(id);
     }
 }

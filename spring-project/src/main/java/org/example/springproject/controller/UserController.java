@@ -48,13 +48,5 @@ public class UserController {
         );
     }
 
-    @GetMapping("/followers/count")
-    public ResponseEntity<Integer> countUserFollowers(@RequestHeader("X-User-Id") String userId) {
-        return ResponseEntity.ok(userService.countUserFollowers(Integer.parseInt(userId)));
-    }
 
-    @GetMapping("/following/count")
-    public ResponseEntity<Integer> countUserFollowing(@RequestHeader("X-User-Id") String userId) {
-        return ResponseEntity.ok(userService.countUserFollowing(Integer.parseInt(userId)));
-    }
 }
