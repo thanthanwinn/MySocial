@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface NotificationDao extends JpaRepository<Notification, Long> {
-    List<Notification> findByReceiverIdAndIsReadFalse(Long receiverId);
+    List<Notification> findByFriendIdAndIsReadFalse(int friendId);
+    List<Notification> findByFriendId(int senderId);
 }

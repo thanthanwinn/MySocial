@@ -21,17 +21,18 @@ public class NotificationService {
 
     private  final NotificationDao notificationRepository;
 
-    public void createNotification(Long senderId, Long receiverId, String type, String message) {
+    public Notification createNotification(int senderId, int receiverId, String type, String message) {
         Notification notification = new Notification();
-        notification.setSenderId(senderId);
-        notification.setReceiverId(receiverId);
+        notification.setUserId(senderId);
+        notification.setFriendId(receiverId);
         notification.setType(type);
         notification.setMessage(message);
         notificationRepository.save(notification);
+        return notification;
     }
 
-    public List<NotificationDto> getUnreadNotifications(Long receiverId) {
-        return notificationRepository.findByReceiverIdAndIsReadFalse(receiverId)
+    public List<NotificationDto> getNotifications(int receiverId) {
+        return notificationRepository.findByFriendId(receiverId)
                 .stream()
                 .map(n -> convertNotificationToDto(n))
                 .collect(Collectors.toList());
@@ -47,8 +48,8 @@ public class NotificationService {
     public NotificationDto convertNotificationToDto(Notification notification) {
         NotificationDto notificationDto = new NotificationDto();
         notificationDto.setId(notification.getId());
-        notificationDto.setSenderId(notification.getSenderId());
-        notificationDto.setReceiverId(notification.getReceiverId());
+        notificationDto.setSenderId(notification.getUserId());
+        notificationDto.setReceiverId(notification.getFriendId());
         notificationDto.setType(notification.getType());
         notificationDto.setMessage(notification.getMessage());
         return notificationDto;

@@ -6,8 +6,10 @@ import org.example.springproject.ds.CommentDto;
 import org.example.springproject.ds.CreateCommentDto;
 import org.example.springproject.ds.CreatePostDto;
 import org.example.springproject.ds.PostDto;
+import org.example.springproject.entity.Post;
 import org.example.springproject.entity.User;
 import org.example.springproject.service.PostService;
+import org.hibernate.annotations.Bag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -30,6 +32,16 @@ public class PostController {
         PostDto createdPost = postService.createPost(postDto, Integer.parseInt(userId));
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
+    @PutMapping("/edit-post/{postId}")
+    public ResponseEntity<PostDto> updatePost(
+            @RequestBody @Valid CreatePostDto postDto,
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable("postId")Long postId
+    ){
+        PostDto updatedPost = postService.editPost(postDto,Integer.parseInt(userId), postId);
+       return ResponseEntity.status(HttpStatus.OK).body(updatedPost);
+    }
+
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPost(
@@ -68,6 +80,12 @@ public class PostController {
         List<CommentDto> comments = postService.getPostComments(postId, Integer.parseInt(userId));
         return ResponseEntity.ok(comments);
     }
+    @PutMapping("/edit-comment/{commentId}")
+    public ResponseEntity<CommentDto> editComment(@RequestBody CreateCommentDto commentDto,@PathVariable Long commentId){
+     var editComment =    postService.editComment(commentDto,commentId);
+     return ResponseEntity.ok(editComment);
+    }
+
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(
@@ -97,11 +115,18 @@ public class PostController {
 //        return ResponseEntity.status(HttpStatus.CREATED).build();
 //    }
 
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/delete-post/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
             @RequestHeader("X-User-Id") String userId) {
         postService.deletePost(postId, Integer.parseInt(userId));
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/delete-comment/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @RequestHeader("X-User-Id") String userId) {
+        postService.deleteComment(commentId, Integer.parseInt(userId));
         return ResponseEntity.ok().build();
     }
 

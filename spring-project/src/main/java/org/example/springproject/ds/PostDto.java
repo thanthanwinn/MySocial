@@ -2,6 +2,7 @@ package org.example.springproject.ds;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,6 @@ public class PostDto {
     private Integer[] likedBy;
     private int commentCount;
     private LocalDateTime createdAt;
-    private String visibility; // New field
+    private String visibility;
     private boolean likedByCurrentUser;
 }

@@ -11,6 +11,7 @@ import org.example.springproject.entity.RelationType;
 import org.example.springproject.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,7 +180,7 @@ public class RelationsService {
     // Accepts a friend request. It retrieves a pending friend request and changes its status to "ACCEPT".
 
     @Transactional
-    public void acceptFriendRequest(int userId, int friendId) {
+    public String acceptFriendRequest(int userId, int friendId) {
         log.info("User {} accepting friend request from {}", userId, friendId);
 
         // Get the pending request where friendId is the sender (follower)
@@ -197,7 +198,7 @@ public class RelationsService {
         Relations savedRelation = relationsDao.save(currentRelation);
         updateUserRelations(getUserById(friendId), getUserById(userId), savedRelation);
 
-        log.info("Friend request accepted successfully");
+        return "Friend request accepted successfully";
     }
 
     // Cancels an outgoing friend request.

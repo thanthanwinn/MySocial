@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,15 @@ public class PostService {
 
         Post savedPost = postDao.save(post);
         return convertToDto(savedPost,userId);
+    }
+
+    public PostDto editPost(CreatePostDto postDto, int userId,Long postId) {
+       var post =  postDao.findById(postId).get();
+       post.setContent(postDto.getContent());
+       post.setUpdatedAt(LocalDateTime.now());
+       post.setVisibility(postDto.getVisibility());
+       Post savedPost = postDao.save(post);
+       return convertToDto(savedPost,userId);
     }
 
     @Transactional(readOnly = true)
@@ -94,6 +104,12 @@ public class PostService {
 
         Comment savedComment = commentDao.save(comment);
         return convertToCommentDto(savedComment);
+    }
+    public CommentDto editComment(CreateCommentDto commentDto,Long commentId){
+        var comment = commentDao.findById(commentId ).get();
+        comment.setContent(commentDto.getContent());
+        var commentdto = commentDao.save(comment);
+        return convertToCommentDto(commentdto);
     }
 
     @Transactional(readOnly = true)
@@ -181,6 +197,18 @@ public class PostService {
         }
 
         postDao.delete(post);
+    }
+    @Transactional
+    public void  deleteComment(Long commentId, int userId) {
+        System.out.println("userid" + userId + "commentId" + commentId);
+        Comment comment = commentDao.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        if (comment.getAuthor().getId() != userId) {
+            throw new SecurityException("Only the author can delete this post");
+        }
+
+        commentDao.delete(comment);
     }
 
     @Transactional
