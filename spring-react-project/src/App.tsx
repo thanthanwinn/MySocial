@@ -6,17 +6,16 @@ import HomeComponent from "./components/HomeComponent";
 import LoginComponent from "./components/LoginComponent";
 import RegisterComponent from "./components/RegisterComponent";
 import ProfileComponent from "./components/ProfileComponent";
-import EditProfileComponent from "./components/EditProfileComponent";
-import { isLoggedIn, isAdmin } from "./service/auth.service";
-import { UserInfoProvider } from "./components/ContextProvider";
+import FriendsComponent from "./components/FriendsComponent";
 import MessageComponent from "./components/MessageComponent";
 import NotificationComponent from "./components/NotificationComponent";
-import FriendsComponent from "./components/FriendsComponent";
+import { isLoggedIn } from "./service/auth.service";
+import { UserInfoProvider } from "./components/ContextProvider";
 import { ThemeProvider } from "./components/ThemeContext";
+import MainLayoutComponent from "./components/MainLayoutComponent";
+import EditProfileComponent from "./components/EditProfileComponent";
 
 export default function App() {
-  const beAdmin = isAdmin();
-
   const AuthenticatedRoute = ({ children }) => {
     if (!isLoggedIn()) {
       return <Navigate to="/login" />;
@@ -24,62 +23,77 @@ export default function App() {
     return children;
   };
 
-  const AdminAuthenticatedRoute = ({ children }) => {
-    if (!isAdmin()) {
-      return <Navigate to="/home" />;
-    }
-    return children;
-  };
-
   return (
-    <div>
+    <div className="h-screen overflow-hidden">
       <BrowserRouter>
         <ThemeProvider>
-        <UserInfoProvider>
-          <HeaderComponent />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<LoginComponent />} />
-            <Route path="/register" element={<RegisterComponent />} />
+          <UserInfoProvider>
+            <HeaderComponent />
+            
+              <Routes>
+  {/* Public Routes */}
+  <Route path="/login" element={<LoginComponent />} />
+  <Route path="/register" element={<RegisterComponent />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/home"
-              element={<AuthenticatedRoute><HomeComponent /></AuthenticatedRoute>}
-            />
-            <Route
-              path="/profile/:username"
-              element={<AuthenticatedRoute><ProfileComponent /></AuthenticatedRoute>}
-            />
-            <Route
-              path="/edit-profile/:username"
-              element={<AuthenticatedRoute><EditProfileComponent /></AuthenticatedRoute>}
-            />
-            <Route
-              path="/friends"
-              element={<AuthenticatedRoute><FriendsComponent /></AuthenticatedRoute>}
-            />
-            <Route
-              path="/messages"
-              element={<AuthenticatedRoute><MessageComponent /></AuthenticatedRoute>}
-            />
-            <Route
-              path="/notifications"
-              element={<AuthenticatedRoute><NotificationComponent /></AuthenticatedRoute>}
-            />
+  {/* Layout Route */}
+  <Route element={<MainLayoutComponent />}>
+    {/* Protected Routes */}
+    <Route
+      path="/home"
+      element={
+        <AuthenticatedRoute>
+          <HomeComponent />
+        </AuthenticatedRoute>
+      }
+    />
+    <Route
+      path="/profile/:username"
+      element={
+        <AuthenticatedRoute>
+          <ProfileComponent />
+        </AuthenticatedRoute>
+      }
+    />
+    <Route
+      path="/friends"
+      element={
+        <AuthenticatedRoute>
+          <FriendsComponent />
+        </AuthenticatedRoute>
+      }
+    />
+    <Route
+      path="/messages"
+      element={
+        <AuthenticatedRoute>
+          <MessageComponent />
+        </AuthenticatedRoute>
+      }
+    />
+    <Route
+      path="/notifications"
+      element={
+        <AuthenticatedRoute>
+          <NotificationComponent />
+        </AuthenticatedRoute>
+      }
+    />
+    <Route
+      path="/edit-profile/:username"
+      element={
+        <AuthenticatedRoute>
+          <EditProfileComponent />
+        </AuthenticatedRoute>
+      }
+    />
 
-            {/* Admin-Only Routes */}
-            {beAdmin && (
-              <Route
-                path="/admin-dashboard"
-                element={<AdminAuthenticatedRoute><h2>Admin Dashboard</h2></AdminAuthenticatedRoute>}
-              />
-            )}
+    {/* Redirect root to /home */}
+    <Route path="/" element={<Navigate to="/home" />} />
+  </Route>
+</Routes>
 
-            <Route path="/" element={<Navigate to="/home" />} />
-          </Routes>
           </UserInfoProvider>
-          </ThemeProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </div>
   );

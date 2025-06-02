@@ -7,14 +7,24 @@ export const RELATIONS_URL = "http://localhost:8080/api/relations";
 export const fetchAllUsers = () => axios.get(`${USER_URL}/user-no-relations`);
 
 // Fetch friend requests
-export const fetchFriendRequests = () => axios.get(`${RELATIONS_URL}/friends-requests`);
+export const fetchFriendRequests = () => {
+ return  axios.get(`${RELATIONS_URL}/friends-requests`);
+}
 
 // Fetch friends
-export const fetchFriends = () => axios.get(`${RELATIONS_URL}/friends`);
+export const fetchUserFriends = (id: number) => {
+  return axios.get(`${RELATIONS_URL}/friends/${id}`);
+  
+}
+export const fetchFriends = () => {
+  return axios.get(`${RELATIONS_URL}/friends`);
+  
+}
+
 
 // Send a friend request
 export const sendFriendRequest = (userId: number) =>
-  axios.post(`${RELATIONS_URL}/send-request/${userId}`);
+  axios.post(`${RELATIONS_URL}/request/${userId}`);
 
 // Accept a friend request
 export const acceptFriendRequest = (userId: number) =>
@@ -31,3 +41,4 @@ export const unfollowUser = (userId: number) =>
 // Block a user
 export const blockUser = (userId: number) =>
   axios.post(`${RELATIONS_URL}/block/${userId}`);
+

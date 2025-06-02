@@ -5,39 +5,25 @@ import { useState, useEffect } from "react";
 import { UserInfoDto } from "../ds/dto";
 import { getLoggedInUserName, logoutUser } from "../service/auth.service";
 import { useTheme } from "./ThemeContext";
-import { fetchUnreadNotifications, markNotificationAsRead } from "../service/user.service";
+import {  getNotificationCount} from "../service/user.service";
 
 export default function HeaderComponent() {
   const { isDarkTheme, toggleTheme } = useTheme();
   const { userInfo } = useUserInfo();
   const [currentUser, setCurrentUser] = useState<UserInfoDto | null>(null);
-  const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const respose = getNotificationCount();
+    respose.then((res) => {
+      setCount(res.data);
+      console.log("Notification count:", res.data);
+    })
+  })
 
   // Fetch unread notifications
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetchUnreadNotifications();
-        setNotifications(response.data);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      }
-    };
-    fetchNotifications();
-  }, []);
+ 
 
-  // Mark a notification as read
-  const handleMarkAsRead = async (notificationId: number) => {
-    try {
-      await markNotificationAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.filter((notification) => notification.id !== notificationId)
-      );
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
-    }
-  };
 
   // Set the current user from the userInfo context
   useEffect(() => {
@@ -100,6 +86,7 @@ export default function HeaderComponent() {
           }`}
         >
           <MessageSquare size={20} /> Messages
+      
         </Link>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
@@ -109,10 +96,13 @@ export default function HeaderComponent() {
               : "hover:bg-sky-100 hover:text-sky-600"
           }`}
         >
-          <Bell size={20} /> Notifications
-          {notifications.length > 0 && (
+          <Bell size={20} />
+          <Link to="/notifications" >
+            Notifications </Link
+>
+          {count > 0 && (
             <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2">
-              {notifications.length}
+              {count}
             </span>
           )}
         </button>
@@ -210,23 +200,8 @@ export default function HeaderComponent() {
             isDarkTheme ? "bg-gray-800 text-white" : "bg-white text-gray-900"
           }`}
         >
-          <ul>
-            {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className="p-2 border-b hover:bg-gray-100 flex justify-between items-center"
-              >
-                <span>{notification.message}</span>
-                <button
-                  onClick={() => handleMarkAsRead(notification.id)}
-                  className="text-blue-500 hover:underline text-sm"
-                >
-                  Mark as read
-                </button>
-              </li>
-            ))}
-          </ul>
-          {notifications.length === 0 && (
+         
+          {count == 0 && (
             <p className="p-2 text-center text-gray-500">No notifications</p>
           )}
         </div>

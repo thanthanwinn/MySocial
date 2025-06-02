@@ -1,7 +1,8 @@
 // usePostManagement.tsx
 import { useState, useEffect, useCallback } from "react";
-import { getPostsforUser, getUserOwnPosts, createPost, addComment, likePost, unlikePost, sharePost, fetchComments } from "../service/user.service";
+import { getPostsforUser, getUserOwnPosts, createPost, addComment, likePost, unlikePost, sharePost, fetchComments, deletePost } from "../service/user.service";
 import { CreatePostDto, getCommentDto, getPostDto, createCommentDto } from '../ds/dto';
+import { getUserId } from "./auth.service";
 
 export function usePostManagement(userId: number, fetchOwnPosts: boolean = false, initialPage: number = 0) {
   const [posts, setPosts] = useState<getPostDto[]>([]);
@@ -21,7 +22,7 @@ export function usePostManagement(userId: number, fetchOwnPosts: boolean = false
     try {
       let data;
       if (fetchOwnPosts) {
-        data = await getUserOwnPosts(userId);
+        data = await getUserOwnPosts(userId,Number(getUserId()));
         setPosts(data);
         setTotalPages(1); // No pagination for own posts
       } else {
@@ -118,6 +119,21 @@ export function usePostManagement(userId: number, fetchOwnPosts: boolean = false
     }
   };
 
+  const handleDeletePost = async (postId: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await deletePost(postId);
+      console.log("deleted post");
+      setPosts(prev => prev.filter(p => p.id !== postId));
+    } catch (err) {
+      setError("Failed to delete post. Please try again.");
+      console.error("Error deleting post:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleComment = async (postId: number, content: string) => {
     setLoading(true);
     setError(null);
@@ -163,6 +179,7 @@ export function usePostManagement(userId: number, fetchOwnPosts: boolean = false
   return {
     posts,
     setPosts,
+    handleDeletePost,
     likes,
     userLikes,
     comments,

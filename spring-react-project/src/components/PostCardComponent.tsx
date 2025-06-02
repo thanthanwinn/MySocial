@@ -1,9 +1,10 @@
 // PostCardComponent.tsx
 import React, { useEffect, useState } from "react";
 import { getCommentDto, getPostDto } from "../ds/dto";
-import { fetchComments } from "../service/user.service";
+import { fetchComments, deleteComment } from '../service/user.service';
 import { useTheme } from "./ThemeContext";
 import { FaGlobe, FaLock, FaUserFriends } from "react-icons/fa";
+import { getUserId } from "../service/auth.service";
 
 interface PostCardProps {
   post: getPostDto;
@@ -11,6 +12,8 @@ interface PostCardProps {
   onLike: () => Promise<void>;
   onComment: (content: string) => Promise<void>;
   onShare: () => Promise<void>;
+  onDeletePost: (postId: number) => Promise<void>;
+  onDeleteComment: (postId: number) => Promise<void>;
   likesCount: number;
   userLiked: boolean;
   comments: getCommentDto[];
@@ -25,6 +28,7 @@ export default function PostCardComponent({
   userId,
   onLike,
   onComment,
+  onDeletePost,
   onShare,
   likesCount,
   userLiked,
@@ -36,8 +40,10 @@ export default function PostCardComponent({
 }: PostCardProps) {
   const { isDarkTheme } = useTheme();
   const [commentDropdownOpen, setCommentDropdownOpen] = useState(false);
+  const currentUserId = getUserId() ;
+  const isAuthor = currentUserId as unknown as number == post.authorId;
 
-  const isAuthor = userId === post.authorId;
+
   const canInteract = isAuthor || post.visibility === "PUBLIC" || (post.visibility === "FRIENDS" && /* friendship check */ true);
 
   useEffect(() => {
@@ -59,12 +65,19 @@ export default function PostCardComponent({
       onComment(propNewComment);
     }
   };
+  const deleteCommentByUser = (id: number) => {
+    deleteComment(id)
+      .then((res) => {
+          
+      })
+      .catch((e) => console.log(e));
+  }
 
   
   if (loading) return <div className={`p-4 ${isDarkTheme ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}>Loading...</div>;
   if (error) return <div className={`p-4 ${isDarkTheme ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}>Error: {error}</div>;
   return (
-    <div className={`card ${isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-xl shadow-lg p-0 m-0 mb-6 transition-all duration-300 hover:shadow-xl`}>
+    <div className={`card ${isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-xl shadow-lg p-0 m-0 mb-2 transition-all duration-300 hover:shadow-xl`}>
       <div className="card-body m-0">
         <div className="flex items-center gap-3 mb-2">
           <div className="avatar">
@@ -108,6 +121,10 @@ export default function PostCardComponent({
                 hour12: true,
               })}
             </span>
+            {isAuthor && <button onClick={ () => onDeletePost(post.id)}
+              className={`text-xs ${isDarkTheme ? 'text-red-400' : 'text-red-500'} hover:text-red-600 transition-all duration-200`}>
+              deletePost
+            </button>}
           </div>
         </div>
 
@@ -209,6 +226,10 @@ export default function PostCardComponent({
                       }`}>
                         {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      {currentUserId as unknown as number == comment.authorId ? <button onClick={ () => deleteCommentByUser(comment.id)}
+              className={`text-xs ${isDarkTheme ? 'text-red-400' : 'text-red-500'} hover:text-red-600 transition-all duration-200`}>
+              deleteComment
+            </button> : <></> }
                     </div>
                     <p className={`text-xs ${
                       isDarkTheme ? 'text-gray-300' : 'text-gray-600'

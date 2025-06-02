@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
-import ToDoListComponent from "./TodoListComponent";
 import PostListComponent from "./PostListComponent";
-import WeatherComponent from "./WeatherComponent";
 import { useTheme } from "./ThemeContext";
 import { useUserInfo } from "./ContextProvider";
 import { getUserInfo } from "../service/user.service";
+import { Outlet } from "react-router-dom";
 
 export default function HomeComponent() {
   const { userInfo, setUserInfo } = useUserInfo();
@@ -32,25 +31,13 @@ export default function HomeComponent() {
 
 
   return (
-// Update the main div classes to:
-<div className={`flex ${isDarkTheme ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} h-screen`}>      {/* Left Sidebar - ToDoList */}
-      <div className="w-4/16 h-full p-2">
-        <div className="sticky top-2">
-          <ToDoListComponent />
-        </div>
-      </div>
-
-      {/* Center Scrollable Feed - PostList */}
-      <div className="flex-1 h-full overflow-y-auto p-2 scrollbar-hide scroll-hidden">
+    <div className={` m-0  ${isDarkTheme ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}  scroll-hidden h-full `}>      {/* Left Sidebar - ToDoList */}
+      
+      <div className={`w-full h-full overflow-y-auto p-2 scrollbar-hide`}>
         <PostListComponent />
       </div>
-
-      {/* Right Sidebar - Weather */}
-      <div className="w-4/16 h-full p-2">
-        <div className="sticky top-2">
-          <WeatherComponent />
-        </div>
-      </div>
+      <Outlet/>
+      
     </div>
   );
 }

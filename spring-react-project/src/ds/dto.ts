@@ -1,3 +1,4 @@
+
 export type UserInfoDto = {
     id: number,
     username: string,
@@ -73,7 +74,15 @@ export type NotificationDto = {
     type:string,
     message:string,
     isRead:boolean,
-    create:string
+    createdAt:string
+}
+
+export type TodoDto = {
+    id?: number,
+    title: string,
+    dueTime: string,
+    completed: boolean,
+    userId?: number
 }
 
 export interface UserInfoContextType {

@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { fetchNotifications, markNotificationAsRead } from "../service/user.service";
+import { clearNotifications, fetchNotifications, markNotificationAsRead } from "../service/user.service";
 import { NotificationDto } from "../ds/dto";
 
 export default function NotificationsComponent() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+
+  useEffect(() => {
+    clearNotifications()
+      .then(res =>
+        console.log("cleared")
+        
+      )
+      .catch(e => console.log(e));
+  })
 
   useEffect(() => {
     fetchNotifications()

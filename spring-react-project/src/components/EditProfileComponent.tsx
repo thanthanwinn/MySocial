@@ -34,10 +34,10 @@ export default function EditProfileComponent() {
 
   useEffect(() => {
     if (userInfo) {
-      setUsername(userInfo.username || "");
-      setDisplayName(userInfo.displayName || "");
-      setBio(userInfo.bio || "");
-      setImg(userInfo.img || "");
+      setUsername(userInfo.username );
+      setDisplayName(userInfo.displayName);
+      setBio(userInfo.bio);
+      setImg(userInfo.img);
     }
   }, [userInfo]);
 
@@ -78,103 +78,98 @@ export default function EditProfileComponent() {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkTheme ? "bg-gray-900" : "bg-gray-100"}`}>
-      <div className="container mx-auto px-4 py-8">
-        <div className={`max-w-lg mx-auto rounded-xl shadow-lg overflow-hidden ${
-          isDarkTheme ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-        }`}
-        >
-          <div className="p-6 sm:p-8">
-            <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
-            
-            <form onSubmit={updateUserProfile} className="space-y-5">
-              <div className="flex flex-col items-center">
-                {/* Profile Image */}
-                <div className="mb-5 text-center">
-                  <label className="block text-sm font-medium mb-2">Profile Picture</label>
-                  <div className="flex flex-col items-center">
-                    <img
-                      src={img || "/default-avatar.webp"}
-                      alt="Profile"
-                      className="w-20 h-20 rounded-full border-2 mb-3"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setOpenImageModal(true)}
-                      className={`text-sm px-4 py-1.5 rounded-md ${
-                        isDarkTheme
-                          ? "bg-gray-700 hover:bg-gray-600"
-                          : "bg-gray-200 hover:bg-gray-300"
-                      } transition`}
-                    >
-                      Choose Image
-                    </button>
-                  </div>
-                </div>
-
-                {/* Username */}
-                <div className="w-full mb-4">
-                  <label className="block text-sm font-medium mb-1">Username</label>
-                  <input
-                    type="text"
-                    maxLength={20}
-                    className={`w-full px-4 py-2 text-sm rounded-md focus:outline-none focus:ring-2 ${
-                      isDarkTheme
-                        ? "bg-gray-700 border-gray-600 focus:ring-blue-500"
-                        : "bg-white border-gray-300 focus:ring-blue-400"
-                    } border`}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
+    <div className={`h-full overflow-y-auto p-4 ${isDarkTheme ? "bg-gray-900" : "bg-gray-100"}`}>
+      <div className={`rounded-xl shadow-lg ${isDarkTheme ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+        <div className="p-6">
+          <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
+          
+          <form onSubmit={updateUserProfile} className="space-y-5">
+            <div className="flex flex-col items-center">
+              {/* Profile Image */}
+              <div className="mb-5 text-center">
+                <label className="block text-sm font-medium mb-2">Profile Picture</label>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={img || "/default-avatar.webp"}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full border-2 mb-3 object-cover"
                   />
-                </div>
-
-                {/* Display Name */}
-                <div className="w-full mb-4">
-                  <label className="block text-sm font-medium mb-1">Display Name</label>
-                  <input
-                    type="text"
-                    maxLength={20}
-                    className={`w-full px-4 py-2 text-sm rounded-md focus:outline-none focus:ring-2 ${
-                      isDarkTheme
-                        ? "bg-gray-700 border-gray-600 focus:ring-blue-500"
-                        : "bg-white border-gray-300 focus:ring-blue-400"
-                    } border`}
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {/* Bio */}
-                <div className="w-full mb-6">
-                  <label className="block text-sm font-medium mb-1">Bio</label>
-                  <textarea
-                    rows={3}
-                    maxLength={200}
-                    className={`w-full px-4 py-2 text-sm rounded-md resize-none focus:outline-none focus:ring-2 ${
-                      isDarkTheme
-                        ? "bg-gray-700 border-gray-600 focus:ring-blue-500"
-                        : "bg-white border-gray-300 focus:ring-blue-400"
-                    } border`}
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell us about yourself..."
-                  />
-                </div>
-
-                {/* Submit Button */}
-                <div className="w-full">
                   <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    type="button"
+                    onClick={() => setOpenImageModal(true)}
+                    className={`text-sm px-4 py-1.5 rounded-md ${
+                      isDarkTheme
+                        ? "bg-gray-700 hover:bg-gray-600"
+                        : "bg-gray-200 hover:bg-gray-300"
+                    } transition`}
                   >
-                    Save Changes
+                    Choose Image
                   </button>
                 </div>
               </div>
-            </form>
-          </div>
+
+              {/* Username */}
+              <div className="w-full mb-4">
+                <label className="block text-sm font-medium mb-1">Username</label>
+                <input
+                  type="text"
+                  maxLength={20}
+                  className={`w-full px-4 py-2 text-sm rounded-md focus:outline-none focus:ring-2 ${
+                    isDarkTheme
+                      ? "bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      : "bg-white border-gray-300 focus:ring-blue-400"
+                  } border`}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Display Name */}
+              <div className="w-full mb-4">
+                <label className="block text-sm font-medium mb-1">Display Name</label>
+                <input
+                  type="text"
+                  maxLength={20}
+                  className={`w-full px-4 py-2 text-sm rounded-md focus:outline-none focus:ring-2 ${
+                    isDarkTheme
+                      ? "bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      : "bg-white border-gray-300 focus:ring-blue-400"
+                  } border`}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Bio */}
+              <div className="w-full mb-6">
+                <label className="block text-sm font-medium mb-1">Bio</label>
+                <textarea
+                  rows={3}
+                  maxLength={200}
+                  className={`w-full px-4 py-2 text-sm rounded-md resize-none focus:outline-none focus:ring-2 ${
+                    isDarkTheme
+                      ? "bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      : "bg-white border-gray-300 focus:ring-blue-400"
+                  } border`}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="w-full">
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -186,7 +181,7 @@ export default function EditProfileComponent() {
           }`}
         >
           <div
-            className={`max-w-3xl w-full max-h-[80vh] overflow-y-auto rounded-xl p-6 shadow-xl relative ${
+            className={`max-w-md w-full max-h-[80vh] overflow-y-auto rounded-xl p-6 shadow-xl relative ${
               isDarkTheme ? "bg-gray-900 text-white" : "bg-white text-gray-900"
             }`}
           >
@@ -197,13 +192,13 @@ export default function EditProfileComponent() {
               ×
             </button>
             <h3 className="text-lg font-semibold mb-4">Select a Profile Image</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {predefinedImages.map((image) => (
                 <div key={image} className="flex flex-col items-center">
                   <img
                     src={image}
                     alt="Option"
-                    className={`w-40 h-40 rounded-full cursor-pointer border-2 p-1 hover:scale-105 transition ${
+                    className={`w-20 h-20 rounded-full cursor-pointer border-2 p-1 hover:scale-105 transition ${
                       img === image
                         ? isDarkTheme
                           ? "border-blue-400"

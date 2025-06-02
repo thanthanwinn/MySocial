@@ -7,4 +7,6 @@ import lombok.Data;
 public class CreateMessageDto {
     @NotBlank
     private String content;
+    @NotBlank
+    private int reciverId;
 }

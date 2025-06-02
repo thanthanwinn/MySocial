@@ -25,6 +25,7 @@ export default function PostListComponent() {
     error,
     handleCreatePost,
     handleLike,
+    handleDeletePost,
     handleComment,
     handleShare,
     handlePageChange,
@@ -40,7 +41,7 @@ export default function PostListComponent() {
 
   return (
 // Update the main div classes to:
-<div className={`w-full max-w-md mx-auto p-4 ${isDarkTheme ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} rounded-xl shadow-md space-y-6`}>      {/* Create Post Section */}
+<div className={` max-w-md mx-auto p-2 scroll-hidden  ${isDarkTheme ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} rounded-xl shadow-md space-y-6`}>      {/* Create Post Section */}
       <section className={`rounded-lg border ${isDarkTheme ? 'bg-[#161b22] border-[#30363d]' : 'bg-white border-[#e2e8f0]'} p-4 shadow-sm`}>
         <header className="mb-3">
           <h2 className="text-md font-semibold">Create New Post</h2>
@@ -92,6 +93,7 @@ export default function PostListComponent() {
               onLike={async () => await handleLike(post.id)}
               onComment={async (content) => await handleComment(post.id, content)}
               onShare={async () => await handleShare(post.id)}
+              onDeletePost={async () => await handleDeletePost(post.id)}
               likesCount={likes[post.id] || 0}
               userLiked={userLikes[post.id] || false}
               comments={comments[post.id] || []}

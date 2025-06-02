@@ -17,5 +17,37 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MessageService {
+    private final MessageDao messageDao;
+    private final UserDao userDao;
+    @Transactional
+    public void createMessage(CreateMessageDto createMessageDto) {
+        Message message = new Message();
+        message.setContent(createMessageDto.getContent());
+        message.setReceiver(userDao.findUserById(createMessageDto.getReciverId()).get());
+        messageDao.save(message);
+    }
+
+    public List<MessageDto> getMessageByUser(int id) {
+        User user = userDao.findUserById(id).get();
+        List<Message> messages = messageDao.findByReceiverOrderBySentAtDesc(user);
+        return messages.stream()
+                .map(m -> convertMessageDto(m))
+                .collect(Collectors.toUnmodifiableList());
+
+    }
+    public MessageDto convertMessageDto(Message message) {
+        MessageDto messageDto = new MessageDto();
+        messageDto.setContent(message.getContent());
+        messageDto.setId(message.getId());
+        messageDto.setRead(false);
+        messageDto.setSentAt(message.getSentAt());
+        messageDto.setSenderId(message.getSender().getId());
+        messageDto.setReceiverId(message.getReceiver().getId());
+        return messageDto;
+
+    }
+
+
+
 
 }

@@ -50,7 +50,7 @@ public class User {
             "",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Relations> followers = new HashSet<>(); // Users following this user
 
-    public void addRole(Role role){
+    public void addRole(Role role) {
         this.roles.add(role);
     }
 
