@@ -14,8 +14,11 @@ import { UserInfoProvider } from "./components/ContextProvider";
 import { ThemeProvider } from "./components/ThemeContext";
 import MainLayoutComponent from "./components/MainLayoutComponent";
 import EditProfileComponent from "./components/EditProfileComponent";
+import ChatConversation from './components/ChatConversation';
 
 export default function App() {
+  window.global = window;
+
   const AuthenticatedRoute = ({ children }) => {
     if (!isLoggedIn()) {
       return <Navigate to="/login" />;
@@ -59,6 +62,14 @@ export default function App() {
       element={
         <AuthenticatedRoute>
           <FriendsComponent />
+        </AuthenticatedRoute>
+      }
+                />
+     <Route
+      path="/chat/:friendId"
+      element={
+        <AuthenticatedRoute>
+          <ChatConversation />
         </AuthenticatedRoute>
       }
     />

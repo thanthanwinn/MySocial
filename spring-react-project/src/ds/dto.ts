@@ -89,3 +89,22 @@ export interface UserInfoContextType {
   userInfo: UserInfoDto | null;
   setUserInfo: (userInfo: UserInfoDto | null) => void;
 }
+
+export type CreateMessageDto = {
+    content: string,
+    receiverId: number
+}
+
+export type MessageDto = {
+    id?: number,
+    content: string,
+    senderId: number,
+    receiverId: number,
+    }
+export type ChatListDto = {
+    friendId:string
+    username:string,
+    img :string,
+    content: string,
+    sentAt:string,
+}
