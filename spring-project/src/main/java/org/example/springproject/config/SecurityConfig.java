@@ -57,7 +57,7 @@ public class SecurityConfig {
         });
 
         http.authorizeHttpRequests(c -> {
-            c.requestMatchers("/","/api/auth/**").permitAll();
+            c.requestMatchers("/","/api/auth/**","/ws/**").permitAll();
             c.anyRequest().authenticated();
         });
 

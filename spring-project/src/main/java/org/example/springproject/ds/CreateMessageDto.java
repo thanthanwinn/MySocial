@@ -8,5 +8,5 @@ public class CreateMessageDto {
     @NotBlank
     private String content;
     @NotBlank
-    private int reciverId;
+    private int receiverId;
 }

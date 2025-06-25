@@ -16,13 +16,13 @@ public class MessageAspect {
     private final MessageService messageService;
     private final UserDao userDao;
 
-    @After(value = "execution(* org.example.springproject.service.MessageService.createMessage(..)) && args(createMessageDto)")
-    public void sendMessage(CreateMessageDto createMessageDto) {
-        messageService.createMessage(createMessageDto);
+   // @After(value = "execution(* org.example.springproject.service.MessageService.createMessage(..)) && args(createMessageDto)")
+    public void sendMessage(CreateMessageDto createMessageDto, int senderId) {
+        messageService.createMessage(createMessageDto,senderId);
 
     }
-    @After(value = "execution(* org.example.springproject.service.MessageService.getMessageByUser(..)) && args(id)")
+      @After(value = "execution(* org.example.springproject.service.MessageService.getMessageByUser(..)) && args(id)")
     public void getMessages(int id) {
-        messageService.getMessageByUser(id);
+      //  messageService.getMessageByUser(id);
     }
 }
