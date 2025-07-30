@@ -18,6 +18,8 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+
+
     @GetMapping("/id/{userId}")
     public ResponseEntity<UserInfoDto> getUserInfo(@PathVariable("userId")int userId) {
         return ResponseEntity.ok(userService.getUserInfo(userId));

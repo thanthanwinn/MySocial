@@ -40,7 +40,7 @@ public class MessageService {
     public List<MessageDto> getMessagesByUser(int userId, int friendId) {
         User user = userDao.findUserById(userId).get();
         User friend = userDao.findUserById(friendId).get();
-        List<Message> messages = messageDao.findBySenderAndReceiverOrderBySentAtAsc(friend, user);
+        List<Message> messages = messageDao.findConversationBetween(friend, user);
         return messages.stream()
                 .map(m -> convertMessageDto(m))
                 .collect(Collectors.toUnmodifiableList());

@@ -13,16 +13,16 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class MessageAspect {
-    private final MessageService messageService;
-    private final UserDao userDao;
-
-   // @After(value = "execution(* org.example.springproject.service.MessageService.createMessage(..)) && args(createMessageDto)")
-    public void sendMessage(CreateMessageDto createMessageDto, int senderId) {
-        messageService.createMessage(createMessageDto,senderId);
-
-    }
-      @After(value = "execution(* org.example.springproject.service.MessageService.getMessageByUser(..)) && args(id)")
-    public void getMessages(int id) {
-      //  messageService.getMessageByUser(id);
-    }
+//    private final MessageService messageService;
+//    private final UserDao userDao;
+//
+//   // @After(value = "execution(* org.example.springproject.service.MessageService.createMessage(..)) && args(createMessageDto)")
+//    public void sendMessage(CreateMessageDto createMessageDto, int senderId) {
+//        messageService.createMessage(createMessageDto,senderId);
+//
+//    }
+//      @After(value = "execution(* org.example.springproject.service.MessageService.getMessageByUser(..)) && args(id)")
+//    public void getMessages(int id) {
+//      //  messageService.getMessageByUser(id);
+//    }
 }

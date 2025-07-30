@@ -32,6 +32,13 @@ public class UserService {
     private final RelationsController relationsController;
     private final RelationsService relationsService;
 
+    public String getUsername(int id){
+      return   userDao.getUsernameById(id);
+    }
+    public int getUserId(String username){
+        return userDao.getIdByUsername(username);
+    }
+
     public UpdateUserInfoDto updateUserInfo(
             int userId,
             String username,

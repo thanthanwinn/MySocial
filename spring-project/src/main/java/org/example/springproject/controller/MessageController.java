@@ -17,20 +17,18 @@ import java.util.List;
 public class MessageController {
     private final MessageService messageService;
 
-    @PostMapping("/send/{receiverId}")
+    @PostMapping("/send")
     public ResponseEntity<MessageDto> sendMessage(
-            @RequestHeader("X-User-Id")String senderId,
-            @PathVariable int receiverId,
-            @RequestBody CreateMessageDto messageDto) {
+            @RequestHeader("X-User-Id")String senderId, @RequestBody CreateMessageDto messageDto) {
         MessageDto message = messageService.createMessage( messageDto,Integer.parseInt(senderId));
         return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
 
     @GetMapping("/conversation/{otherUserId}")
     public ResponseEntity<List<MessageDto>> getConversation(
-            @RequestHeader("X-User-Id") int userId,
-            @PathVariable int otherUserId) {
-        List<MessageDto> messages = messageService.getMessagesByUser( userId,otherUserId);
+            @RequestHeader("X-User-Id")String userId,
+            @PathVariable String otherUserId) {
+        List<MessageDto> messages = messageService.getMessagesByUser(Integer.parseInt(userId),Integer.parseInt(otherUserId));
         return ResponseEntity.ok(messages);
     }
 
