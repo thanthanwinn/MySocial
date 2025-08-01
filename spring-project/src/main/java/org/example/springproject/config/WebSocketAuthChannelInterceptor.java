@@ -1,6 +1,6 @@
-package org.example.springproject.config; // Or a more suitable package
+package org.example.springproject.config;
 
-import org.example.springproject.jwt.JwtTokenProvider; // Your JWT provider
+import org.example.springproject.jwt.JwtTokenProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -12,10 +12,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-// Mark as @Component so Spring can inject it
+
 @Component
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketAuthChannelInterceptor.class);
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
@@ -24,48 +28,31 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
-
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
-        // Only process CONNECT commands
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // Get the Authorization header from the STOMP CONNECT frame's native headers
-            String authHeader = accessor.getFirstNativeHeader("Authorization");
-
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String jwt = authHeader.substring(7); // Extract the token
-                try {
-                    // Validate JWT and load user details
-                    String username = jwtTokenProvider.getUserNameFromToken(jwt);
+            String token = accessor.getFirstNativeHeader("Authorization");
+            log.info("WebSocket CONNECT with token: {}", token);
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+                if (jwtTokenProvider.validateToken(token)) {
+                    String username = jwtTokenProvider.getUserNameFromToken(token);
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
 
-                    if (jwtTokenProvider.validateToken(jwt)) { // Assuming validateToken takes just the token
-                        // Create and set the Authentication object
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        accessor.setUser(authentication);
-                        SecurityContextHolder.getContext().setAuthentication(authentication);// THIS IS THE KEY LINE
-                        System.out.println("STOMP CONNECT: User " + username + " authenticated." + authentication.getName());
-                    } else {
-                        // Token invalid (expired, bad signature, etc.)
-                        System.err.println("STOMP CONNECT: Invalid JWT token provided.");
-                        // Important: If authentication fails, you might want to throw an exception
-                        // to prevent the connection, e.g., throw new MessageDeliveryException("Unauthorized");
-                        // Or let it proceed as anonymous, but for private messaging, denial is better.
-                    }
-                } catch (Exception e) {
-                    System.err.println("STOMP CONNECT: Error processing JWT: " + e.getMessage());
-                    // Deny connection on error
-                    // throw new MessageDeliveryException("Authentication error: " + e.getMessage());
+                    // Set authentication in SecurityContextHolder
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    accessor.setUser(authentication);
+                    log.info("WebSocket user authenticated: {}", username);
+                } else {
+                    log.warn("Invalid JWT token for WebSocket connection");
                 }
             } else {
-                System.err.println("STOMP CONNECT: No valid Authorization header found or malformed.");
-                // Deny connection if no token or malformed header
-                // throw new MessageDeliveryException("Authentication required.");
+                log.warn("No Authorization header for WebSocket connection");
             }
         }
-        return message; // Allow the message to proceed
+        return message;
     }
 }

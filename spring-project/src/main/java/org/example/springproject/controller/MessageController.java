@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.springproject.ds.ChatListDto;
 import org.example.springproject.ds.CreateMessageDto;
 import org.example.springproject.ds.MessageDto;
+import org.example.springproject.entity.Message;
 import org.example.springproject.service.MessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,8 @@ public class MessageController {
     @PostMapping("/send")
     public ResponseEntity<MessageDto> sendMessage(
             @RequestHeader("X-User-Id")String senderId, @RequestBody CreateMessageDto messageDto) {
-        MessageDto message = messageService.createMessage( messageDto,Integer.parseInt(senderId));
-        return ResponseEntity.status(HttpStatus.CREATED).body(message);
+        Message message = messageService.createMessage( messageDto,Integer.parseInt(senderId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(MessageDto.fromMessage(message));
     }
 
     @GetMapping("/conversation/{otherUserId}")

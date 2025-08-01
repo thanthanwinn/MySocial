@@ -1,5 +1,6 @@
 package org.example.springproject.config;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.springproject.jwt.JwtAuthenticationEntryPoint;
@@ -31,6 +32,12 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
+
+    @PostConstruct
+    public void init() {
+        // Set SecurityContextHolder strategy to propagate context to child threads
+        System.setProperty("spring.security.strategy", "MODE_INHERITABLETHREADLOCAL");
+    }
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -41,6 +48,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.httpBasic(Customizer.withDefaults());
         http.csrf(c -> c.disable());
+
         http.cors(c -> {
             CorsConfigurationSource corsConfigurationSource = new CorsConfigurationSource() {
                 @Override
@@ -50,7 +58,7 @@ public class SecurityConfig {
                     config.addAllowedHeader("*");
                     config.addAllowedMethod("*");
                     config.addExposedHeader("*");
-                    config.setAllowedOrigins(List.of("http://localhost:5173","http://locahost:3000"));
+                    config.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:3000"));
                     return config;
                 }
             };
@@ -61,8 +69,7 @@ public class SecurityConfig {
             c.requestMatchers("/","/api/auth/**","/ws/**").permitAll();
             c.anyRequest().authenticated();
         });
-
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exception ->
                exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -23,14 +23,14 @@ public class MessageService {
     private final MessageDao messageDao;
     private final UserDao userDao;
     @Transactional
-    public MessageDto createMessage(CreateMessageDto createMessageDto,int senderId) {
+    public Message createMessage(CreateMessageDto createMessageDto,int senderId) {
         System.out.println(createMessageDto.getReceiverId() + "receier Id: " + createMessageDto.getReceiverId());
         Message message = new Message();
         message.setContent(createMessageDto.getContent());
         message.setReceiver(userDao.findUserById(createMessageDto.getReceiverId()).get());
         message.setSender(userDao.findUserById(senderId).get());
         message.setSentAt(LocalDateTime.now());
-        return convertMessageDto( messageDao.save(message));
+        return messageDao.save(message);
     }
     public List<ChatListDto> getInboxes(int userId){
         return messageDao.getChatListByUserId(userId);

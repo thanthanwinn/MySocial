@@ -25,8 +25,6 @@ import java.util.Map;
 
 
 @Configuration
-@EnableScheduling
-@ComponentScan
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtTokenProvider jwtTokenProvider;
@@ -49,7 +47,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Register the interceptor to process incoming client messages (like CONNECT)
         registration.interceptors(webSocketAuthChannelInterceptor);
     }
 
@@ -57,9 +54,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic","/user");
-        registry.setApplicationDestinationPrefixes("/backend");
-        registry.setUserDestinationPrefix("/user/queue/messages");
+        registry.enableSimpleBroker("/topic", "/queue"); // Consider enabling "/user" here explicitly too, though not strictly required if using UserDestinationResolver
+        registry.setApplicationDestinationPrefixes("/app"); // <-- CHANGE THIS TO "/app"
+        registry.setUserDestinationPrefix("/user");
     }
 
 
