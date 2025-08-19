@@ -275,21 +275,21 @@ export default function FriendsComponent() {
                             className="w-full h-40 object-cover"
                           />
                         </Link>
-                        <div className="p-2">
+                        <div className="p-2 flex flex-col text-center"> 
                           <Link
                             to={`/profile/${user.username}`}
                             className="font-semibold hover:underline block truncate"
                           >
                             {user.username}
                           </Link>
-                          <div className="flex space-x-1 mt-2">
-                            <div >
-                              <button className="flex-1 py-1 text-xs rounded-md bg-blue-500 text-white hover:bg-blue-600"
+                          <div className="gap-2 mt-2">
+                            <div className="flex gap-2 ">
+                              <button className="w-full py-1.5 text-xs rounded-md bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
                               onClick={() => handleSendRequest(user.id)}
                             >
                               Add Friend
                               </button>
-                              <button className="flex-1 py-1 text-xs rounded-md bg-blue-500 text-white hover:bg-blue-600"
+                              <button className="w-full py-1.5 text-xs rounded-md bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
                               onClick={() => handleFollow(user.id,false)}
                             >
                               Follow

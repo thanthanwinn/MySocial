@@ -45,7 +45,7 @@ const MessagingInbox: React.FC = () => {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <strong>{chat.username}</strong>
-                <span style={{ fontSize: 12, color: '#888' }}>{chat.time}</span>
+                <span style={{ fontSize: 12, color: '#888' }}>{chat.sentAt}</span>
               </div>
               <p style={{ margin: 0, color: '#555', fontSize: 14 }}>{chat.content}</p>
             </div>
